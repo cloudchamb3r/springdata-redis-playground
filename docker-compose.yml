@@ -1,0 +1,114 @@
+services:
+  #
+  # Master Redis Server Configuration
+  #
+  redis_master:
+    image: redis:7
+    container_name: redis_master
+    ports:
+      - 6379:6379
+    networks:
+      - redis_network
+    profiles:
+      - standalone
+      - replication
+      - sentinel
+
+  #
+  # Slave Redis Servers Configuration
+  #
+  redis_replica-1:
+    image: redis:7
+    container_name: redis_replica-1
+    depends_on:
+      - redis_master
+    ports:
+      - 6380:6379
+    networks:
+      - redis_network
+    command: >
+      redis-server --replicaof redis_master 6379
+    profiles:
+      - replication
+      - sentinel
+  redis_replica-2:
+    image: redis:7
+    container_name: redis_replica-2
+    depends_on:
+      - redis_master
+    ports:
+      - 6381:6379
+    networks:
+      - redis_network
+    command: >
+      redis-server --replicaof redis_master 6379
+    profiles:
+      - replication
+      - sentinel
+  #
+  # Sentinel Redis Servers Configuration
+  #
+  redis_sentinel-1:
+    image: redis:7
+    container_name: redis_sentinel-1
+    depends_on:
+      - redis_master
+      - redis_replica-1
+      - redis_replica-2
+    ports:
+      - 26379:26379
+    networks:
+      - redis_network
+    volumes:
+      - ./compose-data/sentinel.conf:/tmp/sentinel.conf
+    command: >
+      sh -cx "
+        cat /tmp/sentinel.conf > /etc/sentinel.conf &&
+        redis-sentinel /etc/sentinel.conf
+      "
+    profiles:
+      - sentinel
+  redis_sentinel-2:
+    image: redis:7
+    container_name: redis_sentinel-2
+    depends_on:
+      - redis_master
+      - redis_replica-1
+      - redis_replica-2
+    ports:
+      - 26380:26379
+    networks:
+      - redis_network
+    volumes:
+      - ./compose-data/sentinel.conf:/tmp/sentinel.conf
+    command: >
+      sh -cx "
+        cat /tmp/sentinel.conf > /etc/sentinel.conf && 
+        redis-sentinel /etc/sentinel.conf
+      "
+    profiles:
+      - sentinel
+
+  redis_sentinel-3:
+    image: redis:7
+    container_name: redis_sentinel-3
+    depends_on:
+      - redis_master
+      - redis_replica-1
+      - redis_replica-2
+    ports:
+      - 26381:26379
+    networks:
+      - redis_network
+    volumes:
+      - ./compose-data/sentinel.conf:/tmp/sentinel.conf
+    command: >
+      sh -cx "
+        cat /tmp/sentinel.conf > /etc/sentinel.conf && 
+        redis-sentinel /etc/sentinel.conf
+      "
+    profiles:
+      - sentinel
+
+networks:
+  redis_network:
