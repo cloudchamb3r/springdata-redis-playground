@@ -31,4 +31,11 @@ public class FibonacciController {
         log.info("fibonacci({}) = {}", n, value);
         return value;
     }
+
+    @GetMapping("/recursive-cache2/{n}")
+    public BigDecimal computeFibonacci3(@PathVariable int n) {
+        BigDecimal value = fibonacciService.getFibonacci3(n);
+        log.info("fibonacci({}) = {}", n, value);
+        return value;
+    }
 }
