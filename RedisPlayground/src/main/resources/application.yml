@@ -3,4 +3,7 @@ server:
 spring:
   application:
     name: redis-playground
-
+logging:
+  level:
+    org.springframework.data.redis.connection: DEBUG
+    io.lettuce.core.RedisChannelHandler: DEBUG
