@@ -1,5 +1,6 @@
 package org.cloudchamb3r.playground.config;
 
+import org.cloudchamb3r.playground.service.NotificationService;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +14,10 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
+import java.nio.channels.Channel;
 import java.time.Duration;
 import java.util.Collections;
 
@@ -50,5 +54,13 @@ public class AppConfig {
                         RedisCacheConfiguration.defaultCacheConfig().disableCachingNullValues()
                 ))
                 .build();
+    }
+
+    @Bean
+    public RedisMessageListenerContainer redisMessageListener(RedisConnectionFactory redisConnectionFactory, NotificationService notificationService) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(redisConnectionFactory);
+        container.addMessageListener(notificationService, new ChannelTopic("notification"));
+        return container;
     }
 }
